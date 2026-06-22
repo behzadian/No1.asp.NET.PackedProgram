@@ -21,7 +21,6 @@ WORKDIR /src
 RUN echo "Building $BUILD_HASH at: $BUILD_INSTANT"
 
 RUN pwd
-COPY ./msb ./msb
 WORKDIR /src/app
 COPY app/app.csproj .
 COPY Directory.Packages.props .

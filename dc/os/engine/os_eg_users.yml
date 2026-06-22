@@ -4,7 +4,7 @@ _meta:
 
 # The core administrator account
 admin:
-  hash: $2y$12$ZKwijS3MqoIObNM9F464Ue8kDwHMWMRyyZiZlXTAEAeLLdD6/Ns1m
+  hash: $2y$12$EhsooXIqLm7HDzY7w7QysOOulNeAVBdP5qmKR8URf33Fp7/iMih9.
   reserved: true
   backend_roles:
     - "admin"

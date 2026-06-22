@@ -18,7 +18,7 @@ public sealed class IntegrationTestFactory : WebApplicationFactory<Program>, IAs
 			.Build();
 
 	private readonly KeycloakContainer kcContainer = new KeycloakBuilder("quay.io/keycloak/keycloak:23.0")
-			.WithRealm("../../../../kc/import/fb-realm.json")
+			.WithRealm("../../../../dc/kc/import/fb-realm.json")
 			.Build();
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1055:URI-like return values should not be strings", Justification = "_")]
@@ -46,7 +46,7 @@ public sealed class IntegrationTestFactory : WebApplicationFactory<Program>, IAs
 
 	private static async Task RunFlywayMigrationsAsync(string connectionString) {
 		// Path to your Flyway migration scripts (adjust accordingly)
-		var migrationPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "db", "flyway", "migrations"));
+		var migrationPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "dc", "fw", "migrations"));
 		if (Path.Exists(migrationPath)) {
 			Console.WriteLine($"Flyway migration path: `{migrationPath}`");
 			foreach (var migration in Directory.GetFiles(migrationPath)) {

@@ -1,7 +1,7 @@
 services:
   pgdb:
     image: postgres:${PG_DB_VER}
-    container_name: fb__pgdb
+    container_name: pp__pgdb
     restart: always
     environment:
       POSTGRES_USER: pg
@@ -12,7 +12,7 @@ services:
       POSTGRES_FB_DML_API_PASSWORD: ${PGDB_FB_DML_API_PWD}
       POSTGRES_KC_OWNER_PASSWORD: ${PGDB_KC_PWD}
     volumes:
-      - ./db/pg/init.sh:/docker-entrypoint-initdb.d/10-init-db.sh
+      - ./dc/pg/init.sh:/docker-entrypoint-initdb.d/10-init-db.sh
       - pg_vl:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pg -d fb"]
@@ -21,7 +21,7 @@ services:
       retries: 5
   pgmg:
     image: dpage/pgadmin4:${PG_MG_VER}
-    container_name: fb__pgmg
+    container_name: pp__pgmg
     ports:
       - "9998:80"
     depends_on:
@@ -33,30 +33,30 @@ services:
       - PGADMIN_SERVER_JSON_FILE=/var/lib/pgadmin/servers.json
       - POSTGRES_DATABASE_PASSWORD=${PGDB_PGUSR_PWD}
     volumes:
-      - ./db/pg/srv.json:/tmp/servers.template.json:ro
-      - ./db/pg/srv.sh:/srv.sh:ro
+      - ./dc/pg/srv.json:/tmp/servers.template.json:ro
+      - ./dc/pg/srv.sh:/srv.sh:ro
     entrypoint: ["/bin/sh", "/srv.sh"]
   
   flyway:
     image: flyway/flyway:${FL_WY_VER}
-    container_name: fb__fwy
+    container_name: pp__fwy
     command: migrate
     depends_on:
       pgdb:
         condition: service_healthy
     environment:
       - FLYWAY_URL=jdbc:postgresql://pgdb:5432/fb
-      - FLYWAY_USER=fb__ddl_flyway
+      - FLYWAY_USER=pp__ddl_flyway
       - FLYWAY_PASSWORD=${PGDB_FB_DDL_FLYWAY_PWD}
       - FLYWAY_SCHEMAS=public
       - FLYWAY_LOCATIONS=filesystem:/flyway/sql
       - FLYWAY_VALIDATE_MIGRATION_NAMING=true
     volumes:
-      - ./db/flyway/migrations:/flyway/sql
+      - ./dc/fw/migrations:/flyway/sql
 
   auth:
     image: quay.io/keycloak/keycloak:${KC_VER}
-    container_name: fb__kc
+    container_name: pp__kc
     command:
       - start-dev
       - --import-realm
@@ -76,7 +76,7 @@ services:
     ports:
       - "9999:8080"
     volumes:
-      - ./kc/import:/opt/keycloak/data/import
+      - ./dc/kc/import:/opt/keycloak/data/import
     depends_on:
       pgdb:
         condition: service_healthy
@@ -89,7 +89,7 @@ services:
 
   os:
     image: opensearchproject/opensearch:${OS_VER}
-    container_name: fb__os_engine
+    container_name: pp__os_engine
     hostname: fb-os-engine
     environment:
       - discovery.type=single-node
@@ -130,7 +130,7 @@ services:
 
   os_db:
     image: opensearchproject/opensearch-dashboards:${OS_VER}
-    container_name: fb__os_dashboards
+    container_name: pp__os_dashboards
     ports:
       - "9997:5601"
     environment:
@@ -147,7 +147,7 @@ services:
 
   hc:
     image: xabarilcoding/healthchecksui
-    container_name: fb__hc
+    container_name: pp__hc
     ports:
       - "9994:80"
     environment:
@@ -165,7 +165,7 @@ services:
     build:
       context: .
       dockerfile: app/Dockerfile
-    container_name: fb__api
+    container_name: pp__api
     restart: always
     ports:
       - "10000:8080"
@@ -179,7 +179,7 @@ services:
       - OAuth2Config__PublicUrl=http://localhost:9999/realms/fb
       - OAuth2Config__PrivateUrl=http://auth:8080/realms/fb
       - OAuth2Config__HealthUrl=http://auth:8080/health/ready
-      - ASPNETCORE_ENVIRONMENT=DockerDevelopment
+      - ASPNETCORE_ENVIRONMENT=DevDock
 
       # -----------------------------
       # OpenSearch settings
@@ -194,7 +194,7 @@ services:
       - Serilog__WriteTo__1__Args__indexFormat=fb-api-logs-{0:yyyy.MM.dd}
       - Serilog__WriteTo__1__Args__emitEventFailure=WriteToSelfLog
       - Serilog__WriteTo__1__Args__autoRegisterTemplate=true
-      - "Serilog__WriteTo__1__Args__connection=No1.FaraBank.Api.Logging.OpenSearchClientCertificateHttpConnection, No1.FaraBank.Api"
+      - "Serilog__WriteTo__1__Args__connection=No1.OpenSearchCommons.OpenSearchClientCertificateHttpConnection, No1.OpenSearchCommons"
     volumes:
       - ./dc/os/.tls/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
       - ./dc/os/.tls/client.pem:/usr/share/opensearch/config/client.pem
@@ -202,12 +202,12 @@ services:
 
 volumes:
   pg_vl:
-    name: fb__pg_vl
+    name: pp__pg_vl
   os_vl:
-    name: fb__os_vl
+    name: pp__os_vl
   hc_vl:
-    name: fb__hc_vl
+    name: pp__hc_vl
 networks:
   default:
-    name: fb__net
+    name: pp__net
     driver: bridge

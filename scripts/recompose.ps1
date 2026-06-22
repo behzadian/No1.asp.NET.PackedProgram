@@ -23,7 +23,7 @@ Write-Output "Nuget copied."
 #docker compose -f ../docker-compose.yml down -v
 
 Write-Output "Preparing init.sh"
-$initSh = Join-Path $PSScriptRoot '../db/pg/init.sh'
+$initSh = Join-Path $PSScriptRoot '../dc/pg/init.sh'
 $text = [IO.File]::ReadAllText($initSh)
 $text = $text -replace "`r`n", "`n"
 [IO.File]::WriteAllText($initSh, $text)
@@ -38,7 +38,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Output "Docker built"
 
 docker compose -f ../docker-compose.yml up -d
-docker exec fb__os_engine /usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh `
+docker exec pp__os_engine /usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh `
   -cd "/usr/share/opensearch/config/opensearch-security/" `
   -cacert /usr/share/opensearch/config/root-ca.pem `
   -cert /usr/share/opensearch/config/admin.pem `
@@ -46,4 +46,4 @@ docker exec fb__os_engine /usr/share/opensearch/plugins/opensearch-security/tool
   -nhnv `
   -icl
 Write-Output "Finish setting up security in OPENSEARCH"
-#docker logs -f fb__api
+#docker logs -f pp__api
