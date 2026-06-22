@@ -1,0 +1,15 @@
+server.name: opensearch-dashboards
+server.host: "0.0.0.0"
+
+# Target the backend engine directly
+opensearch.hosts: ["https://fb-os-engine:9200"]
+
+# Strict TLS layer configuration matching your Admin profile
+opensearch.ssl.verificationMode: certificate
+opensearch.ssl.certificateAuthorities: [ "/usr/share/opensearch-dashboards/config/root-ca.pem" ]
+opensearch.username: "admin"
+opensearch.password: "${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+
+# Enable the plugin UI screens
+opensearch_security.multitenancy.enabled: true
+opensearch_security.readonly_mode.roles: ["kibana_read_only"]

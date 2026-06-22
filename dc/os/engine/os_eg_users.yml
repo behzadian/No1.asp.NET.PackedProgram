@@ -1,0 +1,11 @@
+_meta:
+  type: "internalusers"
+  config_version: 2
+
+# The core administrator account
+admin:
+  hash: $2y$12$ZKwijS3MqoIObNM9F464Ue8kDwHMWMRyyZiZlXTAEAeLLdD6/Ns1m
+  reserved: true
+  backend_roles:
+    - "admin"
+  description: "Root administrator user"

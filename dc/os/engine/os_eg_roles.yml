@@ -1,0 +1,29 @@
+_meta:
+  type: "roles"
+  config_version: 2
+
+# Permissions definition for full cluster access
+all_access:
+  reserved: true
+  cluster_permissions:
+    - "cluster:*"
+  index_permissions:
+    - index_patterns:
+        - "*"
+      allowed_actions:
+        - "indices:*"
+
+# Explicit minimal operational profile for the dashboards backend daemon
+kibana_server_role:
+  reserved: true
+  cluster_permissions:
+    - "cluster:monitor/nodes/info"
+    - "cluster:monitor/health"
+  index_permissions:
+    - index_patterns:
+        - ".kibana*"
+        - ".opensearch_dashboards*"
+      allowed_actions:
+        - "indices:data/read/*"
+        - "indices:data/write/*"
+        - "indices:admin/create"

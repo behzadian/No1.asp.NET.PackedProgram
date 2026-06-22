@@ -1,0 +1,213 @@
+services:
+  pgdb:
+    image: postgres:${PG_DB_VER}
+    container_name: fb__pgdb
+    restart: always
+    environment:
+      POSTGRES_USER: pg
+      POSTGRES_PASSWORD: ${PGDB_PGUSR_PWD}
+      POSTGRES_DB: pg
+      POSTGRES_FB_OWNER_PASSWORD: ${PGDB_FB_OWNER_PWD}
+      POSTGRES_FB_DDL_FLYWAY_PASSWORD: ${PGDB_FB_DDL_FLYWAY_PWD}
+      POSTGRES_FB_DML_API_PASSWORD: ${PGDB_FB_DML_API_PWD}
+      POSTGRES_KC_OWNER_PASSWORD: ${PGDB_KC_PWD}
+    volumes:
+      - ./db/pg/init.sh:/docker-entrypoint-initdb.d/10-init-db.sh
+      - pg_vl:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pg -d fb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  pgmg:
+    image: dpage/pgadmin4:${PG_MG_VER}
+    container_name: fb__pgmg
+    ports:
+      - "9998:80"
+    depends_on:
+      pgdb: 
+        condition: service_healthy
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pg@fb.ir
+      - PGADMIN_DEFAULT_PASSWORD=${PGMG_MGR_PWD}
+      - PGADMIN_SERVER_JSON_FILE=/var/lib/pgadmin/servers.json
+      - POSTGRES_DATABASE_PASSWORD=${PGDB_PGUSR_PWD}
+    volumes:
+      - ./db/pg/srv.json:/tmp/servers.template.json:ro
+      - ./db/pg/srv.sh:/srv.sh:ro
+    entrypoint: ["/bin/sh", "/srv.sh"]
+  
+  flyway:
+    image: flyway/flyway:${FL_WY_VER}
+    container_name: fb__fwy
+    command: migrate
+    depends_on:
+      pgdb:
+        condition: service_healthy
+    environment:
+      - FLYWAY_URL=jdbc:postgresql://pgdb:5432/fb
+      - FLYWAY_USER=fb__ddl_flyway
+      - FLYWAY_PASSWORD=${PGDB_FB_DDL_FLYWAY_PWD}
+      - FLYWAY_SCHEMAS=public
+      - FLYWAY_LOCATIONS=filesystem:/flyway/sql
+      - FLYWAY_VALIDATE_MIGRATION_NAMING=true
+    volumes:
+      - ./db/flyway/migrations:/flyway/sql
+
+  auth:
+    image: quay.io/keycloak/keycloak:${KC_VER}
+    container_name: fb__kc
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://pgdb:5432/kc
+      KC_DB_USERNAME: kc_owner
+      KC_DB_PASSWORD: ${PGDB_KC_PWD}
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_LOG_LEVEL: info
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PWD}
+    ports:
+      - "9999:8080"
+    volumes:
+      - ./kc/import:/opt/keycloak/data/import
+    depends_on:
+      pgdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  os:
+    image: opensearchproject/opensearch:${OS_VER}
+    container_name: fb__os_engine
+    hostname: fb-os-engine
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=false
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    ports:
+      - "9996:9200"
+      - "9995:9600"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - os_vl:/usr/share/opensearch/data
+      - ./dc/os/engine/os_eg_cfg.yml:/usr/share/opensearch/config/opensearch.yml
+      - ./dc/os/engine/os_eg_users.yml:/usr/share/opensearch/config/opensearch-security/internal_users.yml
+      - ./dc/os/engine/os_eg_roles.yml:/usr/share/opensearch/config/opensearch-security/roles.yml
+      - ./dc/os/engine/os_eg_roers.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml
+      - ./dc/os/engine/os_eg_auth_config.yml:/usr/share/opensearch/config/opensearch-security/config.yml
+      # Security
+      - ./dc/os/.tls/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./dc/os/.tls/admin.pem:/usr/share/opensearch/config/admin.pem
+      - ./dc/os/.tls/admin-key.pem:/usr/share/opensearch/config/admin-key.pem
+      - ./dc/os/.tls/node1.pem:/usr/share/opensearch/config/node1.pem
+      - ./dc/os/.tls/node1-key.pem:/usr/share/opensearch/config/node1-key.pem
+    healthcheck:
+      test: ["CMD", "curl", "-u", "admin:${OPENSEARCH_INITIAL_ADMIN_PASSWORD}", "-k", "https://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
+
+  os_db:
+    image: opensearchproject/opensearch-dashboards:${OS_VER}
+    container_name: fb__os_dashboards
+    ports:
+      - "9997:5601"
+    environment:
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=false
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    volumes:
+      - ./dc/os/dashboards/os_db_cfg.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
+      - ./dc/os/.tls/root-ca.pem:/usr/share/opensearch-dashboards/config/root-ca.pem
+      - ./dc/os/.tls/admin.pem:/usr/share/opensearch-dashboards/config/admin.pem
+      - ./dc/os/.tls/admin-key.pem:/usr/share/opensearch-dashboards/config/admin-key.pem
+    depends_on:
+      os:
+        condition: service_healthy
+
+  hc:
+    image: xabarilcoding/healthchecksui
+    container_name: fb__hc
+    ports:
+      - "9994:80"
+    environment:
+      - storage_provider=Sqlite
+      - storage_connection=Data Source=health.db
+      - Logging:LogLevel:Default=Debug
+      - Logging:Loglevel:Microsoft=Warning
+      - Logging:LogLevel:HealthChecks=Debug
+      - HealthChecksUI:HealthChecks:0:Name=FB [api]
+      - HealthChecksUI:HealthChecks:0:Uri=http://api:8080/app/health/status
+    volumes:
+      - hc_vl:/config
+
+  api:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: fb__api
+    restart: always
+    ports:
+      - "10000:8080"
+    depends_on:
+      pgdb: 
+        condition: service_healthy
+      os:
+        condition: service_healthy
+    environment:
+      - NHibernateExtendedConfig__ConnectionString=Server=pgdb;Port=5432;Database=fb;uid=fb_dml_api;pwd=${PGDB_FB_DML_API_PWD}
+      - OAuth2Config__PublicUrl=http://localhost:9999/realms/fb
+      - OAuth2Config__PrivateUrl=http://auth:8080/realms/fb
+      - OAuth2Config__HealthUrl=http://auth:8080/health/ready
+      - ASPNETCORE_ENVIRONMENT=DockerDevelopment
+
+      # -----------------------------
+      # OpenSearch settings
+      # -----------------------------
+      - OpenSearchConfig__HealthUrl=https://os:9200/_cluster/health
+
+      # -----------------------------
+      # OpenSearch / Serilog settings
+      # -----------------------------
+      - Serilog__WriteTo__1__Name=OpenSearch
+      - Serilog__WriteTo__1__Args__nodeUris=https://os:9200
+      - Serilog__WriteTo__1__Args__indexFormat=fb-api-logs-{0:yyyy.MM.dd}
+      - Serilog__WriteTo__1__Args__emitEventFailure=WriteToSelfLog
+      - Serilog__WriteTo__1__Args__autoRegisterTemplate=true
+      - "Serilog__WriteTo__1__Args__connection=No1.FaraBank.Api.Logging.OpenSearchClientCertificateHttpConnection, No1.FaraBank.Api"
+    volumes:
+      - ./dc/os/.tls/root-ca.pem:/usr/share/opensearch/config/root-ca.pem
+      - ./dc/os/.tls/client.pem:/usr/share/opensearch/config/client.pem
+      - ./dc/os/.tls/client-key.pem:/usr/share/opensearch/config/client-key.pem
+
+volumes:
+  pg_vl:
+    name: fb__pg_vl
+  os_vl:
+    name: fb__os_vl
+  hc_vl:
+    name: fb__hc_vl
+networks:
+  default:
+    name: fb__net
+    driver: bridge

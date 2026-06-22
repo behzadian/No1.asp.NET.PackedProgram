@@ -1,0 +1,19 @@
+_meta:
+  type: "roles_mapping"
+  config_version: 2
+
+# Assign the admin user to absolute superuser status
+all_access:
+  reserved: true
+  backend_roles:
+    - "admin"
+  users:
+    - "admin"
+    - "fb-api" # client cert CN (clientcert auth, username_attribute: cn)
+
+# Maps the admin user to the built-in system role that OpenSearch Dashboards checks
+# to perform dashboard schema transformations and background index tracking
+kibana_server_role:
+  reserved: true
+  users:
+    - "admin"

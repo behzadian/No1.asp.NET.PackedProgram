@@ -1,0 +1,133 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<RootNamespace>No1.FaraBank.Api</RootNamespace>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<NoWarn>CS1591,SA1600,SA1200,SA1601,SA1633,SA1500,RCS1194,NU1507</NoWarn>
+		<WarningsNotAsErrors>NU1507</WarningsNotAsErrors>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<UserSecretsId>4932b183-6815-4148-9f2d-3635a292f70c</UserSecretsId>
+		<DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.Elasticsearch" />
+		<PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+		<PackageReference Include="AspNetCore.HealthChecks.Publisher.ApplicationInsights" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" />
+		<PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" />
+		<PackageReference Include="AspNetCore.HealthChecks.Uris" />
+		<PackageReference Include="Autofac.Extensions.DependencyInjection" />
+		<PackageReference Include="FluentNHibernate" />
+		<PackageReference Include="Humanizer" />
+		<PackageReference Include="IdentityModel" />
+		<PackageReference Include="JetBrains.Annotations" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="NHibernate" />
+		<PackageReference Include="No1.OpenSearchCommons" />
+		<PackageReference Include="Npgsql" />
+		<PackageReference Include="Npgsql.OpenTelemetry" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+		<PackageReference Include="Serilog" />
+		<PackageReference Include="Serilog.AspNetCore" />
+		<PackageReference Include="Serilog.Settings.Configuration" />
+		<PackageReference Include="Serilog.Sinks.Console" />
+		<PackageReference Include="Serilog.Sinks.OpenSearch" />
+		<PackageReference Include="Swashbuckle.AspNetCore" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Filters" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+		<PackageReference Include="NodaTime" />
+		<PackageReference Include="KubernetesClient" />
+		<PackageReference Include="No1.Commons" />
+		<PackageReference Include="No1.asp.NET.Commons" />
+		<PackageReference Include="No1.EnvBasedEndpoints" />
+		<PackageReference Include="No1.NHibernateNodaTime" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(IsTestProject)' == 'true'">
+		<ResolveConditionalDependency Include="No1.SerilogTestSink">
+			<ProjectPath>..\..\..\libs\No1.SerilogTestSink\lib\lib.csproj</ProjectPath>
+			<ImportType>Auto</ImportType>
+		</ResolveConditionalDependency>
+	</ItemGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="test" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Microsoft Code Analysis -->
+		<PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- StyleCop Analyzers -->
+		<PackageReference Include="StyleCop.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- Roslynator -->
+		<PackageReference Include="Roslynator.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- SonarAnalyzer -->
+		<PackageReference Include="SonarAnalyzer.CSharp">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	<PropertyGroup>
+		<BuildInstant>$([System.DateTime]::UtcNow.ToString('F'))</BuildInstant>
+		<BuildHash>$(BUILD_HASH)</BuildHash>
+		<AssemblyName>No1.FaraBank.Api</AssemblyName>
+	</PropertyGroup>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>BuildInstant</_Parameter1>
+			<_Parameter2>$(BuildInstant)</_Parameter2>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>BuildHash</_Parameter1>
+			<_Parameter2>$(BuildHash)</_Parameter2>
+		</AssemblyAttribute>
+	</ItemGroup>
+	<Target Name="SetCommitHash" BeforeTargets="GetAssemblyAttributes">
+		<Exec Command="git -C &quot;$(MSBuildThisFileDirectory)..&quot; rev-parse --short HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" IgnoreExitCode="true">
+			<Output TaskParameter="ExitCode" PropertyName="_GitExitCode" />
+			<Output TaskParameter="ConsoleOutput" PropertyName="_CommitHash" />
+		</Exec>
+		<PropertyGroup>
+			<_CommitHashTrimmed>$(_CommitHash.Trim())</_CommitHashTrimmed>
+			<CommitHash Condition="'$(_GitExitCode)' == '0' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(_CommitHashTrimmed)', '^[0-9a-f]{7,40}$', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+				$(_CommitHashTrimmed)
+			</CommitHash>
+			<CommitHash Condition="'$(_GitExitCode)' != '0' or !$([System.Text.RegularExpressions.Regex]::IsMatch('$(_CommitHashTrimmed)', '^[0-9a-f]{7,40}$', System.Text.RegularExpressions.RegexOptions.IgnoreCase))"></CommitHash>
+		</PropertyGroup>
+		<ItemGroup>
+			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+				<_Parameter1>CommitHash</_Parameter1>
+				<_Parameter2>$(CommitHash)</_Parameter2>
+			</AssemblyAttribute>
+		</ItemGroup>
+	</Target>
+	<!-- Git hooks: skip in CI/Docker (no .git / not wanted in images). Local dev: run restore from
+	repo root so dotnet-tools.json is found. -->
+	<Target Name="InstallHusky" AfterTargets="Restore" Condition="'$(HUSKY)' != '0' AND '$(CI)' != 'true'">
+		<Exec Command="dotnet tool restore" StandardOutputImportance="Low" />
+		<Exec Command="dotnet husky install" StandardOutputImportance="Low" />
+	</Target>
+</Project>

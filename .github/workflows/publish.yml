@@ -1,0 +1,68 @@
+name: Build and publish Docker image
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      
+      - name: Lowercase repository owner
+        run: |
+          echo "OWNER_LOWERCASE=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      
+      - name: Create Root CA file
+        env:
+          ROOT_CA: ${{ secrets.ROOT_CA }}
+        run: |
+          mkdir -p ./dc/os/.tls
+          echo "$ROOT_CA" > ./dc/os/.tls/root-ca.pem
+      
+      - name: Create empty .nuget folder
+        run: mkdir .nuget
+
+      - name: Build and push images
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./app/Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          build-args: |
+            BUILD_MODE=CI
+          tags: |
+            ghcr.io/${{ env.OWNER_LOWERCASE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LOWERCASE }}/${{ env.IMAGE_NAME }}:latest
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            docker.io/${{ vars.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest

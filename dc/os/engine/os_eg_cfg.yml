@@ -1,0 +1,22 @@
+plugins.security.ssl.transport.pemcert_filepath: node1.pem
+plugins.security.ssl.transport.pemkey_filepath: node1-key.pem
+plugins.security.ssl.transport.pemtrustedcas_filepath: root-ca.pem
+transport.ssl.enforce_hostname_verification: false
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: node1.pem
+plugins.security.ssl.http.pemkey_filepath: node1-key.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: root-ca.pem
+plugins.security.allow_default_init_securityindex: true
+plugins.security.authcz.admin_dn:
+  - 'CN=admin,OU=FB,O=NO1,L=MASHHAD,ST=KHORASAN,C=IR'
+plugins.security.nodes_dn:
+  - 'CN=fb-os-engine,OU=FB,O=NO1,L=MASHHAD,ST=KHORASAN,C=IR'
+plugins.security.audit.type: internal_opensearch
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.check_snapshot_restore_write_privileges: true
+plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+cluster.routing.allocation.disk.threshold_enabled: false
+opendistro_security.audit.config.disabled_rest_categories: NONE
+opendistro_security.audit.config.disabled_transport_categories: NONE
+plugins.security.ssl.http.clientauth_mode: OPTIONAL
+network.host: 0.0.0.0

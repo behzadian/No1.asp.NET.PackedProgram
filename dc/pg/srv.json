@@ -1,0 +1,59 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PG",
+      "Group": "Servers",
+      "Host": "pgdb",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "pg",
+      "Password": "${POSTGRES_DATABASE_PASSWORD}",
+      "SSLMode": "prefer",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "2": {
+      "Name": "FB_OWN",
+      "Group": "Servers",
+      "Host": "pgdb",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "fb_owner",
+      "Password": "${POSTGRES_DATABASE_PASSWORD}",
+      "SSLMode": "prefer",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "3": {
+      "Name": "FB DDL",
+      "Group": "Servers",
+      "Host": "pgdb",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "fb_ddl_flyway",
+      "Password": "${POSTGRES_DATABASE_PASSWORD}",
+      "SSLMode": "prefer",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "4": {
+      "Name": "FB DML",
+      "Group": "Servers",
+      "Host": "pgdb",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "fb_dml_flyway",
+      "Password": "${POSTGRES_DATABASE_PASSWORD}",
+      "SSLMode": "prefer",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "5": {
+      "Name": "KC OWNER",
+      "Group": "Servers",
+      "Host": "pgdb",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "kc_owner",
+      "Password": "${POSTGRES_DATABASE_PASSWORD}",
+      "SSLMode": "prefer",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    }
+  }
+}

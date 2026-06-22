@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>true</IsPackable>
+		<AssemblyName>test</AssemblyName>
+		<RootNamespace>test</RootNamespace>
+		<Title>test</Title>
+		<Authors>Hank Benz</Authors>
+		<Company>No1</Company>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<NoWarn>CS1591,SA1600,SA1200,SA1601,SA1633,SA1500,RCS1194,SA1300,CA1515</NoWarn>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<!-- Microsoft Code Analysis -->
+		<PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- StyleCop Analyzers -->
+		<PackageReference Include="StyleCop.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- Roslynator -->
+		<PackageReference Include="Roslynator.Analyzers">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<!-- SonarAnalyzer -->
+		<PackageReference Include="SonarAnalyzer.CSharp">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Testcontainers" />
+		<PackageReference Include="Testcontainers.Keycloak" />
+		<PackageReference Include="Testcontainers.PostgreSql" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="No1.Commons" />
+		<PackageReference Include="No1.SerilogTestSink" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\app\app.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+	<!-- Git hooks: skip in CI/Docker (no .git / not wanted in images). Local dev: run restore from
+	repo root so dotnet-tools.json is found. -->
+	<Target Name="InstallHusky" AfterTargets="Restore" Condition="'$(HUSKY)' != '0' AND '$(CI)' != 'true'">
+		<Exec Command="dotnet tool restore" StandardOutputImportance="Low" />
+		<Exec Command="dotnet husky install" StandardOutputImportance="Low" />
+	</Target>
+
+</Project>

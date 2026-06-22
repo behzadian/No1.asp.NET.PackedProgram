@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="app/app.csproj" />
+  <Project Path="compose.dcproj">
+    <Build />
+  </Project>
+  <Project Path="test/test.csproj" />
+</Solution>

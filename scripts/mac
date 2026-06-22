@@ -1,0 +1,2 @@
+docker exec fbkc /opt/keycloak/bin/kc.sh export --dir /tmp/export --realm fb --users realm_file
+docker cp fbkc:/tmp/export/fb-realm.json ~/Workspaces/FaraBank/api/kc/import/fb-realm.json
